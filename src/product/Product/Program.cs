@@ -1,9 +1,22 @@
+using Microsoft.EntityFrameworkCore;
+using ProductApi.Database;
+using ProductApi.Api;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Register EF Core ProductDbContext using SQLite. Connection string comes from configuration
+// (ConnectionStrings:ProductDb). If not present, the default in appsettings.json will be used.
+var connectionString = builder.Configuration.GetConnectionString("ProductDb");
+if (!string.IsNullOrWhiteSpace(connectionString))
+{
+    builder.Services.AddDbContext<ProductApi.Database.ProductDbContext>(options =>
+        options.UseSqlite(connectionString));
+}
 
 var app = builder.Build();
 
@@ -16,29 +29,15 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
+// Ensure database is created at startup (for dev). In production, use migrations.
+using (var scope = app.Services.CreateScope())
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    var db = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
+    db.Database.EnsureCreated();
+}
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+// Product CRUD endpoints mapped from separate file
+var products = app.MapGroup("/api/products");
+products.MapProducts();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
