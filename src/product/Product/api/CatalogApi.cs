@@ -25,11 +25,15 @@ namespace ProductApi.Api
                         query = query.Where(q);
                     }
 
+                    // For the catalog, do not allow querying for inactive products
+                    query = query.Where(item => item.IsActive == true);
+
                     if (!string.IsNullOrWhiteSpace(orderBy))
                     {
                         query = query.OrderBy(orderBy);
                     }
 
+                    // Note this is a potentially expensive operation, and the need for it should be evaluated
                     var total = await query.CountAsync();
                     var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 

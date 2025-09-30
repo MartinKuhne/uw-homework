@@ -14,6 +14,11 @@ LoggingConfigurator.Configure(builder);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Bind feature flags from configuration
+var featureFlags = new ProductApi.Configuration.FeatureFlags();
+builder.Configuration.GetSection("FeatureFlags").Bind(featureFlags);
+builder.Services.AddSingleton(featureFlags);
+
 // Register system helper for getting time and guids
 builder.Services.AddSingleton<ProductApi.Helpers.ISystem, ProductApi.Helpers.SystemImpl>();
 
@@ -46,17 +51,24 @@ using (var scope = app.Services.CreateScope())
     db.Database.EnsureCreated();
 }
 
-// Product CRUD endpoints mapped from separate file
-var products = app.MapGroup("/api/products");
-products.MapProducts();
+// Read-only catalog endpoints (enabled via feature flag)
+if (featureFlags.EnableAdminApi)
+{
+    // Product CRUD endpoints mapped from separate file
+    var products = app.MapGroup("/api/products");
+    products.MapProducts();
 
-// Category endpoints
-var categories = app.MapGroup("/api/categories");
-categories.MapCategories();
+    // Category endpoints
+    var categories = app.MapGroup("/api/categories");
+    categories.MapCategories();
+}
 
-// Read-only catalog endpoints
-var catalog = app.MapGroup("/api/catalog");
-catalog.MapCatalog();
+// Read-only catalog endpoints (enabled via feature flag)
+if (featureFlags.EnableCatalogApi)
+{
+    var catalog = app.MapGroup("/api/catalog");
+    catalog.MapCatalog();
+}
 
 try
 {
