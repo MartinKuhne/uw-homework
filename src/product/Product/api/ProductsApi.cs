@@ -10,13 +10,13 @@ namespace ProductApi.Api
         public static RouteGroupBuilder MapProducts(this RouteGroupBuilder group)
         {
             // List (include category) with pagination: ?page=1&pageSize=20
-            group.MapGet("/", async (int page = 1, int pageSize = 20, ProductDbContext db) =>
+            group.MapGet("/", async (ProductDbContext db, int page = 1, int pageSize = 20) =>
             {
                 // normalize paging parameters
                 if (page < 1) page = 1;
                 pageSize = System.Math.Clamp(pageSize, 1, 100);
 
-                var query = db.Products.AsNoTracking().Include(p => p.Category).OrderBy(p => p.Name);
+                var query = db.Products.AsNoTracking().Include(p => p.Category);
 
                 var total = await query.CountAsync();
 

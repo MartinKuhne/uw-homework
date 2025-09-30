@@ -44,8 +44,8 @@ namespace ProductApi.Database
             var category = modelBuilder.Entity<Category>();
             category.HasKey(c => c.Id);
             category.Property(c => c.Name).IsRequired().HasMaxLength(200);
-            // Optional: index on name for faster lookup; not enforcing uniqueness to allow duplicates if desired
-            category.HasIndex(c => c.Name).HasDatabaseName("IX_Categories_Name");
+            // Index on name for faster lookup and enforce uniqueness
+            category.HasIndex(c => c.Name).HasDatabaseName("IX_Categories_Name").IsUnique();
 
             // Note: If you add collection properties (e.g. Tags) later, consider storing them
             // as JSON with a conversion for SQLite or a separate join table for relational DBs.

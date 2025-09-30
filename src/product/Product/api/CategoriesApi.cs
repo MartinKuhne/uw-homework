@@ -21,10 +21,30 @@ namespace ProductApi.Api
                 return c is not null ? Results.Ok(c) : Results.NotFound();
             }).WithName("GetCategoryById").WithOpenApi();
 
-            // Create
+            // Create - return BadRequest if a category with the same name already exists
             group.MapPost("/", async (ProductApi.Model.Category category, ProductDbContext db, ISystem sys) =>
             {
+                var name = (category.Name ?? string.Empty).Trim();
+                if (string.IsNullOrEmpty(name))
+                {
+                    return Results.BadRequest("Category name is required.");
+                }
+
+                // Load existing names and compare in-memory using StringComparer.OrdinalIgnoreCase
+                var existingNames = await db.Categories.AsNoTracking()
+                    .Where(c => c.Name != null)
+                    .Select(c => c.Name!)
+                    .ToListAsync();
+
+                var exists = existingNames.Any(n => StringComparer.OrdinalIgnoreCase.Equals(n, name));
+
+                if (exists)
+                {
+                    return Results.BadRequest($"A category with the name '{name}' already exists.");
+                }
+
                 category.Id = category.Id == Guid.Empty ? sys.NewGuid : category.Id;
+                category.Name = name; // normalize
                 db.Categories.Add(category);
                 await db.SaveChangesAsync();
                 return Results.Created($"/api/categories/{category.Id}", category);
