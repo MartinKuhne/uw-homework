@@ -29,7 +29,6 @@ if (!string.IsNullOrWhiteSpace(connectionString))
 var app = builder.Build();
 
 app.UseMiddleware<RequestHeaderLoggingMiddleware>();
-app.UseSerilogRequestLogging(); // Logs HTTP requests automatically
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

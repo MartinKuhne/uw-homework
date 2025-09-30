@@ -1,6 +1,70 @@
 @Product_HostAddress = http://localhost:5086
+@productId = 
+@categoryId = 
 
-GET {{Product_HostAddress}}/weatherforecast/
+### List products
+GET {{Product_HostAddress}}/api/products
 Accept: application/json
 
-###
+### Get product by id
+GET {{Product_HostAddress}}/api/products/{{productId}}
+Accept: application/json
+
+### Create a category
+POST {{Product_HostAddress}}/api/categories
+Content-Type: application/json
+
+{
+	"name": "Books"
+}
+
+### Create a product (assign to created category using {{categoryId}})
+POST {{Product_HostAddress}}/api/products
+Content-Type: application/json
+
+{
+	"name": "Sample Product",
+	"description": "A short description",
+	"price": 9.99,
+	"currency": "USD",
+	"categoryId": "{{categoryId}}",
+	"isActive": true
+}
+
+### Update a product
+PUT {{Product_HostAddress}}/api/products/{{productId}}
+Content-Type: application/json
+
+{
+	"id": "{{productId}}",
+	"name": "Updated Product",
+	"description": "Updated description",
+	"price": 12.50,
+	"currency": "USD",
+	"categoryId": "{{categoryId}}",
+	"isActive": true
+}
+
+### Delete a product
+DELETE {{Product_HostAddress}}/api/products/{{productId}}
+
+### List categories
+GET {{Product_HostAddress}}/api/categories
+Accept: application/json
+
+### Get category by id
+GET {{Product_HostAddress}}/api/categories/{{categoryId}}
+Accept: application/json
+
+### Update a category
+PUT {{Product_HostAddress}}/api/categories/{{categoryId}}
+Content-Type: application/json
+
+{
+	"id": "{{categoryId}}",
+	"name": "Updated Category"
+}
+
+### Delete a category
+DELETE {{Product_HostAddress}}/api/categories/{{categoryId}}
+
