@@ -45,17 +45,22 @@ namespace ProductApi.Api
             }).WithName("GetProductById").WithOpenApi();
 
             // Create
-                group.MapPost("/", async (ProductApi.Model.Product product, ProductDbContext db, ISystem sys) =>
+            group.MapPost("/", async (ProductApi.Model.Product product, ProductDbContext db, ISystem sys) =>
+            {
+                if (!db.categories.Any(c => c.Id == product.CategoryId))
                 {
-                    product.Id = product.Id == Guid.Empty ? sys.NewGuid : product.Id;
-                    product.CreatedAt = sys.UtcNow;
-                    // Only set foreign key; do not attach navigation property coming from client
-                    var toAdd = product;
-                    toAdd.Category = null;
-                    db.Products.Add(toAdd);
-                    await db.SaveChangesAsync();
-                    return Results.Created($"/api/products/{product.Id}", product);
-                }).WithName("CreateProduct").WithOpenApi();
+                    return Results.BadRequest($"Category with ID '{product.CategoryId}' does not exist.");
+                }
+
+                product.Id = product.Id == Guid.Empty ? sys.NewGuid : product.Id;
+                product.CreatedAt = sys.UtcNow;
+                // Only set foreign key; do not attach navigation property coming from client
+                var toAdd = product;
+                toAdd.Category = null;
+                db.Products.Add(toAdd);
+                await db.SaveChangesAsync();
+                return Results.Created($"/api/products/{product.Id}", product);
+            }).WithName("CreateProduct").WithOpenApi();
 
             // Update
                 group.MapPut("/{id}", async (Guid id, ProductApi.Model.Product updated, ProductDbContext db, ISystem sys) =>
