@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ProductApi.Database;
 using ProductApi.Api;
-using Serilog;
+using Serilog.AspNetCore;
 using ProductApi.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -57,15 +57,13 @@ categories.MapCategories();
 
 try
 {
-    Log.Information("Starting Product API");
+    var logger = app.Services.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Program>>();
+    logger.LogInformation("Starting Product API");
     app.Run();
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "Host terminated unexpectedly");
+    var logger = app.Services.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Program>>();
+    logger.LogCritical(ex, "Host terminated unexpectedly");
     throw;
-}
-finally
-{
-    Log.CloseAndFlush();
 }
