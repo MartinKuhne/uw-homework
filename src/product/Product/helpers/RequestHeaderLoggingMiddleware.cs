@@ -18,9 +18,9 @@ public class RequestHeaderLoggingMiddleware
     {
         var headers = context.Request.Headers
             .Where(h => h.Key != "Authorization") // Optional: exclude sensitive headers
-            .Select(h => $"{h.Key}: {string.Join(", ", h.Value)}");
+            .Select(h => $"{h.Key}: {string.Join(", ", h.Value.Count > 0 ? h.Value.ToArray() : System.Array.Empty<string>())}");
 
-        _logger.LogInformation("Request Headers:\n{Headers}", string.Join("\n", headers));
+        _logger.LogInformation("Request Headers:\n{Headers}", string.Join("\n", headers ?? Enumerable.Empty<string>()));
 
         await _next(context);
     }
