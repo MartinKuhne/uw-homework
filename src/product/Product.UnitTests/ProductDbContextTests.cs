@@ -2,12 +2,29 @@ using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using ProductApi.Database;
 using ProductApi.Model;
+using ProductApi.Helpers;
 using ProductType = ProductApi.Model.Product;
 
 namespace ProductApi.UnitTests
 {
     public class ProductDbContextTests
     {
+        private class FakeSystem : ISystem
+        {
+            public FakeSystem(Guid id, DateTimeOffset now)
+            {
+                GuidValue = id;
+                Now = now;
+            }
+
+            private Guid GuidValue { get; }
+            private DateTimeOffset Now { get; }
+
+            public DateTimeOffset UtcNow => Now;
+
+            public Guid NewGuid => GuidValue;
+        }
+
         private DbContextOptions<ProductDbContext> CreateNewContextOptions()
         {
             // Create a fresh service provider, and therefore a fresh
@@ -22,7 +39,10 @@ namespace ProductApi.UnitTests
         {
             var options = CreateNewContextOptions();
 
+            var sys = new FakeSystem(Guid.Parse("11111111-1111-1111-1111-111111111111"), DateTimeOffset.Parse("2025-09-30T00:00:00Z"));
             var product = new ProductType { Name = "Test Product", Price = 12.34M, Currency = "USD" };
+            product.Id = sys.NewGuid;
+            product.CreatedAt = sys.UtcNow;
 
             // Create
             using (var context = new ProductDbContext(options))
@@ -46,7 +66,10 @@ namespace ProductApi.UnitTests
         {
             var options = CreateNewContextOptions();
 
+            var sys2 = new FakeSystem(Guid.Parse("22222222-2222-2222-2222-222222222222"), DateTimeOffset.Parse("2025-09-30T00:00:00Z"));
             var product = new ProductType { Name = "Old", Price = 1.00M, Currency = "USD" };
+            product.Id = sys2.NewGuid;
+            product.CreatedAt = sys2.UtcNow;
 
             using (var context = new ProductDbContext(options))
             {
@@ -77,7 +100,10 @@ namespace ProductApi.UnitTests
         {
             var options = CreateNewContextOptions();
 
+            var sys3 = new FakeSystem(Guid.Parse("33333333-3333-3333-3333-333333333333"), DateTimeOffset.Parse("2025-09-30T00:00:00Z"));
             var product = new ProductType { Name = "ToDelete", Price = 5.00M, Currency = "USD" };
+            product.Id = sys3.NewGuid;
+            product.CreatedAt = sys3.UtcNow;
 
             using (var context = new ProductDbContext(options))
             {

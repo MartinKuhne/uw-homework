@@ -9,6 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Register system helper for getting time and guids
+builder.Services.AddSingleton<ProductApi.Helpers.ISystem, ProductApi.Helpers.SystemImpl>();
+
 // Register EF Core ProductDbContext using SQLite. Connection string comes from configuration
 // (ConnectionStrings:ProductDb). If not present, the default in appsettings.json will be used.
 var connectionString = builder.Configuration.GetConnectionString("ProductDb");

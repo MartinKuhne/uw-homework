@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using ProductApi.Database;
+using ProductApi.Helpers;
 
 namespace ProductApi.Api
 {
@@ -21,18 +22,18 @@ namespace ProductApi.Api
             }).WithName("GetProductById").WithOpenApi();
 
             // Create
-            group.MapPost("/", async (ProductApi.Model.Product product, ProductDbContext db) =>
-            {
-                product.Id = product.Id == Guid.Empty ? Guid.NewGuid() : product.Id;
-                product.CreatedAt = DateTimeOffset.UtcNow;
-                db.Products.Add(product);
-                await db.SaveChangesAsync();
-                return Results.Created($"/api/products/{product.Id}", product);
-            }).WithName("CreateProduct").WithOpenApi();
+                group.MapPost("/", async (ProductApi.Model.Product product, ProductDbContext db, ISystem sys) =>
+                {
+                    product.Id = product.Id == Guid.Empty ? sys.NewGuid : product.Id;
+                    product.CreatedAt = sys.UtcNow;
+                    db.Products.Add(product);
+                    await db.SaveChangesAsync();
+                    return Results.Created($"/api/products/{product.Id}", product);
+                }).WithName("CreateProduct").WithOpenApi();
 
             // Update
-            group.MapPut("/{id}", async (Guid id, ProductApi.Model.Product updated, ProductDbContext db) =>
-            {
+                group.MapPut("/{id}", async (Guid id, ProductApi.Model.Product updated, ProductDbContext db, ISystem sys) =>
+                {
                 var existing = await db.Products.FindAsync(id);
                 if (existing is null) return Results.NotFound();
 
@@ -46,7 +47,7 @@ namespace ProductApi.Api
                 existing.WidthCm = updated.WidthCm;
                 existing.HeightCm = updated.HeightCm;
                 existing.DepthCm = updated.DepthCm;
-                existing.UpdatedAt = DateTimeOffset.UtcNow;
+                existing.UpdatedAt = sys.UtcNow;
 
                 await db.SaveChangesAsync();
                 return Results.NoContent();
