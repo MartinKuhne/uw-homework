@@ -9,10 +9,33 @@ namespace ProductApi.Api
     {
         public static RouteGroupBuilder MapProducts(this RouteGroupBuilder group)
         {
-            // List (include category)
-            group.MapGet("/", async (ProductDbContext db) =>
-                await db.Products.AsNoTracking().Include(p => p.Category).ToListAsync())
-                .WithName("GetProducts").WithOpenApi();
+            // List (include category) with pagination: ?page=1&pageSize=20
+            group.MapGet("/", async (int page = 1, int pageSize = 20, ProductDbContext db) =>
+            {
+                // normalize paging parameters
+                if (page < 1) page = 1;
+                pageSize = System.Math.Clamp(pageSize, 1, 100);
+
+                var query = db.Products.AsNoTracking().Include(p => p.Category).OrderBy(p => p.Name);
+
+                var total = await query.CountAsync();
+
+                var items = await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                var result = new
+                {
+                    Items = items,
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalCount = total,
+                    TotalPages = (int)System.Math.Ceiling(total / (double)pageSize)
+                };
+
+                return Results.Ok(result);
+            }).WithName("GetProducts").WithOpenApi();
 
             // Get by id
             group.MapGet("/{id}", async (Guid id, ProductDbContext db) =>
