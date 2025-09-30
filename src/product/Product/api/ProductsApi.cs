@@ -60,7 +60,8 @@ namespace ProductApi.Api
                 db.Products.Add(toAdd);
                 await db.SaveChangesAsync();
                 return Results.Created($"/api/products/{product.Id}", product);
-            }).WithName("CreateProduct").WithOpenApi();
+            }).WithName("CreateProduct").WithOpenApi()
+            .RequireAuthorization("WriteScopePolicy");
 
             // Update
             group.MapPut("/{id}", async (Guid id, ProductApi.Model.Product updated, ProductDbContext db, ISystem sys) =>
@@ -82,7 +83,8 @@ namespace ProductApi.Api
 
                 await db.SaveChangesAsync();
                 return Results.NoContent();
-            }).WithName("UpdateProduct").WithOpenApi();
+            }).WithName("UpdateProduct").WithOpenApi()
+            .RequireAuthorization("WriteScopePolicy");
 
             // Delete
             group.MapDelete("/{id}", async (Guid id, ProductDbContext db) =>
@@ -92,7 +94,8 @@ namespace ProductApi.Api
                 db.Products.Remove(existing);
                 await db.SaveChangesAsync();
                 return Results.NoContent();
-            }).WithName("DeleteProduct").WithOpenApi();
+            }).WithName("DeleteProduct").WithOpenApi()
+            .RequireAuthorization("WriteScopePolicy");
 
             return group;
         }

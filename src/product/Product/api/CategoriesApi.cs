@@ -43,7 +43,8 @@ namespace ProductApi.Api
                 db.Categories.Add(category);
                 await db.SaveChangesAsync();
                 return Results.Created($"/api/categories/{category.Id}", category);
-            }).WithName("CreateCategory").WithOpenApi();
+            }).WithName("CreateCategory").WithOpenApi()
+            .RequireAuthorization("WriteScopePolicy");
 
             // Update
             group.MapPut("/{id}", async (Guid id, ProductApi.Model.Category updated, ProductDbContext db) =>
@@ -53,7 +54,8 @@ namespace ProductApi.Api
                 existing.Name = updated.Name;
                 await db.SaveChangesAsync();
                 return Results.NoContent();
-            }).WithName("UpdateCategory").WithOpenApi();
+            }).WithName("UpdateCategory").WithOpenApi()
+            .RequireAuthorization("WriteScopePolicy");
 
             // Delete
             group.MapDelete("/{id}", async (Guid id, ProductDbContext db) =>
@@ -63,7 +65,8 @@ namespace ProductApi.Api
                 db.Categories.Remove(existing);
                 await db.SaveChangesAsync();
                 return Results.NoContent();
-            }).WithName("DeleteCategory").WithOpenApi();
+            }).WithName("DeleteCategory").WithOpenApi()
+            .RequireAuthorization("WriteScopePolicy");
 
             return group;
         }

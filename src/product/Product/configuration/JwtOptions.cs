@@ -14,6 +14,6 @@ public class JwtOptions
     // Whether to require HTTPS for metadata retrieval
     public bool RequireHttpsMetadata { get; set; } = true;
 
-    // Optional admin scope name to require for admin endpoints (checked in 'scope' or 'scp' claims)
-    public string? AdminScope { get; set; }
+    // Optional write scope name to require for admin/write endpoints (checked in 'scope' or 'scp' claims)
+    public string? WriteScope { get; set; }
 }

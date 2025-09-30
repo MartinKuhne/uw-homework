@@ -84,32 +84,31 @@ if (!string.IsNullOrWhiteSpace(jwtOptions.Authority) || !string.IsNullOrWhiteSpa
         }
     });
 
-    builder.Services.AddAuthorization();
+    // NOTE: Do not add Authorization here; we'll register policies below.
 }
 
-// If admin scope is configured, add a policy that checks the scope/scp claim
-if (!string.IsNullOrWhiteSpace(jwtOptions.AdminScope))
+// Register authorization and the WriteScopePolicy (fallback to RequireAuthenticatedUser when no scope configured)
+builder.Services.AddAuthorization(options =>
 {
-    builder.Services.AddAuthorization(options =>
+    options.AddPolicy("WriteScopePolicy", policy =>
     {
-        options.AddPolicy("AdminScopePolicy", policy =>
+        policy.RequireAuthenticatedUser();
+        if (!string.IsNullOrWhiteSpace(jwtOptions.WriteScope))
         {
-            policy.RequireAuthenticatedUser();
             policy.RequireAssertion(context =>
             {
-                // Check both 'scope' (often space-separated) and 'scp' (array) claims
                 var scopeClaim = context.User.FindFirst(c => c.Type == "scope" || c.Type == "scp");
                 if (scopeClaim == null)
                 {
                     return false;
                 }
-
                 var scopes = scopeClaim.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                return scopes.Contains(jwtOptions.AdminScope);
+                return scopes.Contains(jwtOptions.WriteScope);
             });
-        });
+        }
+        // When WriteScope not configured, policy simply requires authenticated user
     });
-}
+});
 
 // Register system helper for getting time and guids
 builder.Services.AddSingleton<ProductApi.Helpers.ISystem, ProductApi.Helpers.SystemImpl>();
@@ -140,6 +139,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Authentication & Authorization middleware (ensure this runs before endpoint routing)
+app.UseAuthentication();
+app.UseAuthorization();
+
 // Ensure database is created at startup (for dev). In production, use migrations.
 using (var scope = app.Services.CreateScope())
 {
@@ -154,9 +157,9 @@ if (featureFlags.EnableAdminApi)
     var products = app.MapGroup("/api/products");
     if (!string.IsNullOrWhiteSpace(jwtOptions.Authority) || !string.IsNullOrWhiteSpace(jwtOptions.MetadataAddress))
     {
-        if (!string.IsNullOrWhiteSpace(jwtOptions.AdminScope))
+        if (!string.IsNullOrWhiteSpace(jwtOptions.WriteScope))
         {
-            products.RequireAuthorization("AdminScopePolicy");
+            products.RequireAuthorization("WriteScopePolicy");
         }
         else
         {
@@ -169,9 +172,9 @@ if (featureFlags.EnableAdminApi)
     var categories = app.MapGroup("/api/categories");
     if (!string.IsNullOrWhiteSpace(jwtOptions.Authority) || !string.IsNullOrWhiteSpace(jwtOptions.MetadataAddress))
     {
-        if (!string.IsNullOrWhiteSpace(jwtOptions.AdminScope))
+        if (!string.IsNullOrWhiteSpace(jwtOptions.WriteScope))
         {
-            categories.RequireAuthorization("AdminScopePolicy");
+            categories.RequireAuthorization("WriteScopePolicy");
         }
         else
         {
