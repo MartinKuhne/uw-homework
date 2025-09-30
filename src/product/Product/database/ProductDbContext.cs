@@ -11,6 +11,7 @@ namespace ProductApi.Database
         }
 
     public DbSet<ProductEntity> Products { get; set; } = null!;
+        public DbSet<ProductApi.Model.Category> Categories { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -23,7 +24,11 @@ namespace ProductApi.Database
             product.Property(p => p.Description).HasMaxLength(2000);
             product.Property(p => p.Price).HasColumnType("decimal(18,2)");
             product.Property(p => p.Currency).HasMaxLength(3).IsRequired();
-            product.Property(p => p.Category).HasMaxLength(200);
+         // Category relationship: optional many-to-one
+         product.HasOne(p => p.Category)
+             .WithMany()
+             .HasForeignKey("CategoryId")
+             .IsRequired(false);
             product.Property(p => p.IsActive).HasDefaultValue(true);
             product.Property(p => p.CreatedAt).IsRequired();
             product.Property(p => p.UpdatedAt);

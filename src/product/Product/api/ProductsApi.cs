@@ -9,15 +9,15 @@ namespace ProductApi.Api
     {
         public static RouteGroupBuilder MapProducts(this RouteGroupBuilder group)
         {
-            // List
+            // List (include category)
             group.MapGet("/", async (ProductDbContext db) =>
-                await db.Products.AsNoTracking().ToListAsync())
+                await db.Products.AsNoTracking().Include(p => p.Category).ToListAsync())
                 .WithName("GetProducts").WithOpenApi();
 
             // Get by id
             group.MapGet("/{id}", async (Guid id, ProductDbContext db) =>
             {
-                var p = await db.Products.FindAsync(id);
+                var p = await db.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
                 return p is not null ? Results.Ok(p) : Results.NotFound();
             }).WithName("GetProductById").WithOpenApi();
 
@@ -26,7 +26,10 @@ namespace ProductApi.Api
                 {
                     product.Id = product.Id == Guid.Empty ? sys.NewGuid : product.Id;
                     product.CreatedAt = sys.UtcNow;
-                    db.Products.Add(product);
+                    // Only set foreign key; do not attach navigation property coming from client
+                    var toAdd = product;
+                    toAdd.Category = null;
+                    db.Products.Add(toAdd);
                     await db.SaveChangesAsync();
                     return Results.Created($"/api/products/{product.Id}", product);
                 }).WithName("CreateProduct").WithOpenApi();
@@ -41,7 +44,7 @@ namespace ProductApi.Api
                 existing.Description = updated.Description;
                 existing.Price = updated.Price;
                 existing.Currency = updated.Currency;
-                existing.Category = updated.Category;
+                existing.CategoryId = updated.CategoryId;
                 existing.IsActive = updated.IsActive;
                 existing.WeightKg = updated.WeightKg;
                 existing.WidthCm = updated.WidthCm;

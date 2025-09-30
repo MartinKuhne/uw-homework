@@ -43,4 +43,8 @@ using (var scope = app.Services.CreateScope())
 var products = app.MapGroup("/api/products");
 products.MapProducts();
 
+// Category endpoints
+var categories = app.MapGroup("/api/categories");
+categories.MapCategories();
+
 app.Run();

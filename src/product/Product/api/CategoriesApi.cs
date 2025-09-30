@@ -1,0 +1,56 @@
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
+using ProductApi.Database;
+using ProductApi.Helpers;
+
+namespace ProductApi.Api
+{
+    public static class CategoriesApi
+    {
+        public static RouteGroupBuilder MapCategories(this RouteGroupBuilder group)
+        {
+            // List categories
+            group.MapGet("/", async (ProductDbContext db) =>
+                await db.Categories.AsNoTracking().ToListAsync())
+                .WithName("GetCategories").WithOpenApi();
+
+            // Get by id
+            group.MapGet("/{id}", async (Guid id, ProductDbContext db) =>
+            {
+                var c = await db.Categories.FindAsync(id);
+                return c is not null ? Results.Ok(c) : Results.NotFound();
+            }).WithName("GetCategoryById").WithOpenApi();
+
+            // Create
+            group.MapPost("/", async (ProductApi.Model.Category category, ProductDbContext db, ISystem sys) =>
+            {
+                category.Id = category.Id == Guid.Empty ? sys.NewGuid : category.Id;
+                db.Categories.Add(category);
+                await db.SaveChangesAsync();
+                return Results.Created($"/api/categories/{category.Id}", category);
+            }).WithName("CreateCategory").WithOpenApi();
+
+            // Update
+            group.MapPut("/{id}", async (Guid id, ProductApi.Model.Category updated, ProductDbContext db) =>
+            {
+                var existing = await db.Categories.FindAsync(id);
+                if (existing is null) return Results.NotFound();
+                existing.Name = updated.Name;
+                await db.SaveChangesAsync();
+                return Results.NoContent();
+            }).WithName("UpdateCategory").WithOpenApi();
+
+            // Delete
+            group.MapDelete("/{id}", async (Guid id, ProductDbContext db) =>
+            {
+                var existing = await db.Categories.FindAsync(id);
+                if (existing is null) return Results.NotFound();
+                db.Categories.Remove(existing);
+                await db.SaveChangesAsync();
+                return Results.NoContent();
+            }).WithName("DeleteCategory").WithOpenApi();
+
+            return group;
+        }
+    }
+}

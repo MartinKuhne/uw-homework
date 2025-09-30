@@ -33,9 +33,13 @@ namespace ProductApi.Model
 		[JsonPropertyName("currency")]
 		public string Currency { get; set; } = "USD";
 
-		/// <summary>Category or collection the product belongs to.</summary>
-		[JsonPropertyName("category")]
-		public string? Category { get; set; }
+	/// <summary>Reference to category (foreign key).</summary>
+	[JsonPropertyName("categoryId")]
+	public Guid? CategoryId { get; set; }
+
+	/// <summary>Navigation property for the product's category.</summary>
+	[JsonPropertyName("category")]
+	public Category? Category { get; set; }
 
 		/// <summary>Whether the product is active and should be shown in listings.</summary>
 		[JsonPropertyName("isActive")]
