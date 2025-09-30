@@ -23,7 +23,7 @@ var connectionString = builder.Configuration.GetConnectionString("ProductDb");
 if (!string.IsNullOrWhiteSpace(connectionString))
 {
     builder.Services.AddDbContext<ProductApi.Database.ProductDbContext>(options =>
-        options.UseSqlite(connectionString));
+        options.UseSqlServer(connectionString));
 }
 
 var app = builder.Build();
