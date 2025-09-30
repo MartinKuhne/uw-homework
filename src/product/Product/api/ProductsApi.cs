@@ -47,7 +47,7 @@ namespace ProductApi.Api
             // Create
             group.MapPost("/", async (ProductApi.Model.Product product, ProductDbContext db, ISystem sys) =>
             {
-                if (!db.categories.Any(c => c.Id == product.CategoryId))
+                if (!await db.Categories.AnyAsync(c => c.Id == product.CategoryId))
                 {
                     return Results.BadRequest($"Category with ID '{product.CategoryId}' does not exist.");
                 }

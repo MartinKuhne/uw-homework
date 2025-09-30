@@ -54,6 +54,10 @@ products.MapProducts();
 var categories = app.MapGroup("/api/categories");
 categories.MapCategories();
 
+// Read-only catalog endpoints
+var catalog = app.MapGroup("/api/catalog");
+catalog.MapCatalog();
+
 try
 {
     var logger = app.Services.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Program>>();
