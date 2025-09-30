@@ -1,8 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using ProductApi.Database;
 using ProductApi.Api;
+using Serilog;
+using ProductApi.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure logging (Serilog) from configuration using the centralized configurator
+LoggingConfigurator.Configure(builder);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -22,6 +27,9 @@ if (!string.IsNullOrWhiteSpace(connectionString))
 }
 
 var app = builder.Build();
+
+app.UseMiddleware<RequestHeaderLoggingMiddleware>();
+app.UseSerilogRequestLogging(); // Logs HTTP requests automatically
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -47,4 +55,17 @@ products.MapProducts();
 var categories = app.MapGroup("/api/categories");
 categories.MapCategories();
 
-app.Run();
+try
+{
+    Log.Information("Starting Product API");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Host terminated unexpectedly");
+    throw;
+}
+finally
+{
+    Log.CloseAndFlush();
+}

@@ -24,11 +24,6 @@ namespace ProductApi.Database
             product.Property(p => p.Description).HasMaxLength(2000);
             product.Property(p => p.Price).HasColumnType("decimal(18,2)");
             product.Property(p => p.Currency).HasMaxLength(3).IsRequired();
-         // Category relationship: optional many-to-one
-         product.HasOne(p => p.Category)
-             .WithMany()
-             .HasForeignKey("CategoryId")
-             .IsRequired(false);
             product.Property(p => p.IsActive).HasDefaultValue(true);
             product.Property(p => p.CreatedAt).IsRequired();
             product.Property(p => p.UpdatedAt);
@@ -39,8 +34,21 @@ namespace ProductApi.Database
             product.Property(p => p.HeightCm);
             product.Property(p => p.DepthCm);
 
-          // Note: If you add collection properties (e.g. Tags) later, consider storing them
-          // as JSON with a conversion for SQLite or a separate join table for relational DBs.
+            // Category relationship: optional many-to-one
+            product.HasOne(p => p.Category)
+                .WithMany()
+                .HasForeignKey("CategoryId")
+                .IsRequired(false);
+
+            // Category entity configuration
+            var category = modelBuilder.Entity<Category>();
+            category.HasKey(c => c.Id);
+            category.Property(c => c.Name).IsRequired().HasMaxLength(200);
+            // Optional: index on name for faster lookup; not enforcing uniqueness to allow duplicates if desired
+            category.HasIndex(c => c.Name).HasDatabaseName("IX_Categories_Name");
+
+            // Note: If you add collection properties (e.g. Tags) later, consider storing them
+            // as JSON with a conversion for SQLite or a separate join table for relational DBs.
         }
     }
 }
