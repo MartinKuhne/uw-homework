@@ -87,6 +87,30 @@ if (!string.IsNullOrWhiteSpace(jwtOptions.Authority) || !string.IsNullOrWhiteSpa
     builder.Services.AddAuthorization();
 }
 
+// If admin scope is configured, add a policy that checks the scope/scp claim
+if (!string.IsNullOrWhiteSpace(jwtOptions.AdminScope))
+{
+    builder.Services.AddAuthorization(options =>
+    {
+        options.AddPolicy("AdminScopePolicy", policy =>
+        {
+            policy.RequireAuthenticatedUser();
+            policy.RequireAssertion(context =>
+            {
+                // Check both 'scope' (often space-separated) and 'scp' (array) claims
+                var scopeClaim = context.User.FindFirst(c => c.Type == "scope" || c.Type == "scp");
+                if (scopeClaim == null)
+                {
+                    return false;
+                }
+
+                var scopes = scopeClaim.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                return scopes.Contains(jwtOptions.AdminScope);
+            });
+        });
+    });
+}
+
 // Register system helper for getting time and guids
 builder.Services.AddSingleton<ProductApi.Helpers.ISystem, ProductApi.Helpers.SystemImpl>();
 
@@ -130,7 +154,14 @@ if (featureFlags.EnableAdminApi)
     var products = app.MapGroup("/api/products");
     if (!string.IsNullOrWhiteSpace(jwtOptions.Authority) || !string.IsNullOrWhiteSpace(jwtOptions.MetadataAddress))
     {
-        products.RequireAuthorization();
+        if (!string.IsNullOrWhiteSpace(jwtOptions.AdminScope))
+        {
+            products.RequireAuthorization("AdminScopePolicy");
+        }
+        else
+        {
+            products.RequireAuthorization();
+        }
     }
     products.MapProducts();
 
@@ -138,7 +169,14 @@ if (featureFlags.EnableAdminApi)
     var categories = app.MapGroup("/api/categories");
     if (!string.IsNullOrWhiteSpace(jwtOptions.Authority) || !string.IsNullOrWhiteSpace(jwtOptions.MetadataAddress))
     {
-        categories.RequireAuthorization();
+        if (!string.IsNullOrWhiteSpace(jwtOptions.AdminScope))
+        {
+            categories.RequireAuthorization("AdminScopePolicy");
+        }
+        else
+        {
+            categories.RequireAuthorization();
+        }
     }
     categories.MapCategories();
 }
