@@ -12,7 +12,7 @@ namespace ProductApi.Model
 	{
 		/// <summary>Unique identifier for the product.</summary>
 		[JsonPropertyName("id")]
-		public Guid Id { get; set; } = Guid.NewGuid();
+		public Guid Id { get; set; } = Guid.Empty;
 
 		/// <summary>Product display name.</summary>
 		[Required]

@@ -11,35 +11,7 @@ LoggingConfigurator.Configure(builder);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    // Add JWT Bearer definition so Swagger UI shows an authorize button
-    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-    {
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Name = "Authorization",
-        Description = "Enter 'Bearer {token}' or just paste the JWT token."
-    });
-
-    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-    {
-        {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] { }
-        }
-    });
-});
+ProductApi.Configuration.SwaggerConfigurator.Configure(builder.Services);
 
 // Bind feature flags from configuration
 var featureFlags = new ProductApi.Configuration.FeatureFlags();
@@ -155,32 +127,10 @@ if (featureFlags.EnableAdminApi)
 {
     // Product CRUD endpoints mapped from separate file
     var products = app.MapGroup("/api/products");
-    if (!string.IsNullOrWhiteSpace(jwtOptions.Authority) || !string.IsNullOrWhiteSpace(jwtOptions.MetadataAddress))
-    {
-        if (!string.IsNullOrWhiteSpace(jwtOptions.WriteScope))
-        {
-            products.RequireAuthorization("WriteScopePolicy");
-        }
-        else
-        {
-            products.RequireAuthorization();
-        }
-    }
     products.MapProducts();
 
     // Category endpoints
     var categories = app.MapGroup("/api/categories");
-    if (!string.IsNullOrWhiteSpace(jwtOptions.Authority) || !string.IsNullOrWhiteSpace(jwtOptions.MetadataAddress))
-    {
-        if (!string.IsNullOrWhiteSpace(jwtOptions.WriteScope))
-        {
-            categories.RequireAuthorization("WriteScopePolicy");
-        }
-        else
-        {
-            categories.RequireAuthorization();
-        }
-    }
     categories.MapCategories();
 }
 
