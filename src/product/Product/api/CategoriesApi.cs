@@ -30,13 +30,8 @@ namespace ProductApi.Api
                     return Results.BadRequest("Category name is required.");
                 }
 
-                // Load existing names and compare in-memory using StringComparer.OrdinalIgnoreCase
-                var existingNames = await db.Categories.AsNoTracking()
-                    .Where(c => c.Name != null)
-                    .Select(c => c.Name!)
-                    .ToListAsync();
-
-                var exists = existingNames.Any(n => StringComparer.OrdinalIgnoreCase.Equals(n, name));
+                var exists = await db.Categories.AsNoTracking()
+                    .AnyAsync(c => c.Name.ToLower() == name.ToLower());
 
                 if (exists)
                 {
