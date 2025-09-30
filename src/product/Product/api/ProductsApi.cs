@@ -63,8 +63,8 @@ namespace ProductApi.Api
             }).WithName("CreateProduct").WithOpenApi();
 
             // Update
-                group.MapPut("/{id}", async (Guid id, ProductApi.Model.Product updated, ProductDbContext db, ISystem sys) =>
-                {
+            group.MapPut("/{id}", async (Guid id, ProductApi.Model.Product updated, ProductDbContext db, ISystem sys) =>
+            {
                 var existing = await db.Products.FindAsync(id);
                 if (existing is null) return Results.NotFound();
 

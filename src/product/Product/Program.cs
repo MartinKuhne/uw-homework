@@ -12,12 +12,80 @@ LoggingConfigurator.Configure(builder);
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    // Add JWT Bearer definition so Swagger UI shows an authorize button
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Name = "Authorization",
+        Description = "Enter 'Bearer {token}' or just paste the JWT token."
+    });
+
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] { }
+        }
+    });
+});
 
 // Bind feature flags from configuration
 var featureFlags = new ProductApi.Configuration.FeatureFlags();
 builder.Configuration.GetSection("FeatureFlags").Bind(featureFlags);
 builder.Services.AddSingleton(featureFlags);
+
+// Bind JWT options (optional)
+var jwtOptions = new ProductApi.Configuration.JwtOptions();
+builder.Configuration.GetSection("Jwt").Bind(jwtOptions);
+
+// If an authority/metadata or audience is configured, enable JWT Bearer authentication
+if (!string.IsNullOrWhiteSpace(jwtOptions.Authority) || !string.IsNullOrWhiteSpace(jwtOptions.MetadataAddress))
+{
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        if (!string.IsNullOrWhiteSpace(jwtOptions.MetadataAddress))
+        {
+            options.MetadataAddress = jwtOptions.MetadataAddress;
+        }
+        else if (!string.IsNullOrWhiteSpace(jwtOptions.Authority))
+        {
+            options.Authority = jwtOptions.Authority;
+        }
+
+        options.RequireHttpsMetadata = jwtOptions.RequireHttpsMetadata;
+
+        // Ensure token validation parameters exist and explicitly disable audience validation
+        options.TokenValidationParameters ??= new Microsoft.IdentityModel.Tokens.TokenValidationParameters();
+        options.TokenValidationParameters.ValidateIssuer = true;
+        options.TokenValidationParameters.ValidateAudience = false; // explicitly turn off audience validation
+        options.TokenValidationParameters.ValidateIssuerSigningKey = true;
+
+        // We may still set an audience for other purposes, but validation will remain disabled
+        if (!string.IsNullOrWhiteSpace(jwtOptions.Audience))
+        {
+            options.Audience = jwtOptions.Audience;
+        }
+    });
+
+    builder.Services.AddAuthorization();
+}
 
 // Register system helper for getting time and guids
 builder.Services.AddSingleton<ProductApi.Helpers.ISystem, ProductApi.Helpers.SystemImpl>();
@@ -39,7 +107,11 @@ app.UseMiddleware<RequestHeaderLoggingMiddleware>();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Product API v1");
+        c.RoutePrefix = string.Empty; // Serve Swagger UI at app root in development
+    });
 }
 
 app.UseHttpsRedirection();
@@ -51,15 +123,23 @@ using (var scope = app.Services.CreateScope())
     db.Database.EnsureCreated();
 }
 
-// Read-only catalog endpoints (enabled via feature flag)
+// Admin endpoints (enabled via feature flag)
 if (featureFlags.EnableAdminApi)
 {
     // Product CRUD endpoints mapped from separate file
     var products = app.MapGroup("/api/products");
+    if (!string.IsNullOrWhiteSpace(jwtOptions.Authority) || !string.IsNullOrWhiteSpace(jwtOptions.MetadataAddress))
+    {
+        products.RequireAuthorization();
+    }
     products.MapProducts();
 
     // Category endpoints
     var categories = app.MapGroup("/api/categories");
+    if (!string.IsNullOrWhiteSpace(jwtOptions.Authority) || !string.IsNullOrWhiteSpace(jwtOptions.MetadataAddress))
+    {
+        categories.RequireAuthorization();
+    }
     categories.MapCategories();
 }
 
