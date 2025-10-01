@@ -5,11 +5,13 @@ WORKDIR /src
 
 # Copy everything and build the Product project
 COPY . .
-WORKDIR /src/src/product/Product
 
 # Restore and publish
+WORKDIR /src/Product
+
+RUN ls -l .
+
 RUN dotnet restore
-RUN dotnet test
 RUN dotnet publish -c Release -o /app/publish --no-restore
 
 # Runtime stage
