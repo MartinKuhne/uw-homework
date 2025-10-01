@@ -9,6 +9,7 @@ WORKDIR /src/src/product/Product
 
 # Restore and publish
 RUN dotnet restore
+RUN dotnet test
 RUN dotnet publish -c Release -o /app/publish --no-restore
 
 # Runtime stage

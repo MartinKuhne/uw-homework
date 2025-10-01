@@ -1,4 +1,4 @@
-name: Build Product Docker image
+name: Build and push Product Docker image to ECR
 
 on:
   push:
@@ -7,9 +7,13 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-    name: Build Docker image
+  build-and-push:
+    name: Build
     runs-on: ubuntu-latest
+
+    env:
+      ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
 
     steps:
       - name: Checkout
@@ -21,22 +25,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build Docker image (no push)
+      - name: Build and push image to ECR
         uses: docker/build-push-action@v4
         with:
           context: ./src/product/Product
           file: ./src/product/Product/Dockerfile
           push: false
-          tags: product-api:${{ github.sha }}
+          tags: |
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Save image to tar
-        run: |
-          docker save product-api:${{ github.sha }} -o product-${{ github.sha }}.tar
-
-      - name: Upload image artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: product-image
-          path: product-${{ github.sha }}.tar
