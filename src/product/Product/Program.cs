@@ -7,8 +7,8 @@ using ProductApi.Configuration;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add environment variables provider. Use a prefix so production env vars can be namespaced.
-// Example: PRODUCT__Jwt__WriteScope=uw-ecom-api/write will override configuration:Jwt:WriteScope
-builder.Configuration.AddEnvironmentVariables(prefix: "PRODUCT_");
+// Example: Jwt__WriteScope=uw-ecom-api/write will override configuration:Jwt:WriteScope
+builder.Configuration.AddEnvironmentVariables();
 
 // Configure logging (Serilog) from configuration using the centralized configurator
 LoggingConfigurator.Configure(builder);
