@@ -1,0 +1,14 @@
+.venv
+bin
+obj
+**/bin
+**/obj
+*.md
+*.user
+*.suo
+*.log
+.vscode
+.env
+**/node_modules
+**/*.db
+
