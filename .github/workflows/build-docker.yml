@@ -1,0 +1,42 @@
+name: Build Product Docker image
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build Docker image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker image (no push)
+        uses: docker/build-push-action@v4
+        with:
+          context: ./src/product/Product
+          file: ./src/product/Product/Dockerfile
+          push: false
+          tags: product-api:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Save image to tar
+        run: |
+          docker save product-api:${{ github.sha }} -o product-${{ github.sha }}.tar
+
+      - name: Upload image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-image
+          path: product-${{ github.sha }}.tar
