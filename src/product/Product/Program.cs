@@ -149,6 +149,9 @@ if (featureFlags.EnableCatalogApi)
     catalog.MapCatalog();
 }
 
+// Simple health check that returns plain text
+app.MapGet("/health", () => Results.Text("healthy")).WithName("Health").AllowAnonymous();
+
 try
 {
     var logger = app.Services.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Program>>();
