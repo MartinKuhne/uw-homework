@@ -1,3 +1,7 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using ProductApi.Database;
 using ProductApi.Api;
@@ -148,6 +152,26 @@ if (featureFlags.EnableCatalogApi)
 try
 {
     var logger = app.Services.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Program>>();
+    // Log environment variables on startup as structured data (be careful not to log secrets in production)
+    try
+    {
+        var envVars = Environment.GetEnvironmentVariables();
+        var envDict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (DictionaryEntry de in envVars)
+        {
+            var key = de.Key?.ToString() ?? string.Empty;
+            var value = de.Value?.ToString() ?? string.Empty;
+            envDict[key] = value;
+        }
+
+        // Structured log - `@Env` will preserve the dictionary structure for Serilog sinks
+        logger.LogInformation("Environment variables: {@Env}", envDict);
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "Failed to enumerate environment variables");
+    }
+
     logger.LogInformation("Starting Product API");
     app.Run();
 }
