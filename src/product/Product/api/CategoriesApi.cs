@@ -12,7 +12,12 @@ namespace ProductApi.Api
             // List categories
             group.MapGet("/", async (ProductDbContext db) =>
                 await db.Categories.AsNoTracking().ToListAsync())
-                .WithName("GetCategories").WithOpenApi();
+                .WithName("GetCategories").WithOpenApi().AllowAnonymous();
+
+            // List categories (auth test)
+            group.MapGet("/auth/", async (ProductDbContext db) =>
+                await db.Categories.AsNoTracking().ToListAsync())
+                .WithName("GetCategories").WithOpenApi().RequireAuthorization("WriteScopePolicy");
 
             // Get by id
             group.MapGet("/{id}", async (Guid id, ProductDbContext db) =>
@@ -44,7 +49,7 @@ namespace ProductApi.Api
                 await db.SaveChangesAsync();
                 return Results.Created($"/api/categories/{category.Id}", category);
             }).WithName("CreateCategory").WithOpenApi()
-            .RequireAuthorization("WriteScopePolicy");
+            .AllowAnonymous();
 
             // Update
             group.MapPut("/{id}", async (Guid id, ProductApi.Model.Category updated, ProductDbContext db) =>
@@ -55,7 +60,7 @@ namespace ProductApi.Api
                 await db.SaveChangesAsync();
                 return Results.NoContent();
             }).WithName("UpdateCategory").WithOpenApi()
-            .RequireAuthorization("WriteScopePolicy");
+            .AllowAnonymous();
 
             // Delete
             group.MapDelete("/{id}", async (Guid id, ProductDbContext db) =>
@@ -66,7 +71,7 @@ namespace ProductApi.Api
                 await db.SaveChangesAsync();
                 return Results.NoContent();
             }).WithName("DeleteCategory").WithOpenApi()
-            .RequireAuthorization("WriteScopePolicy");
+            .AllowAnonymous();
 
             return group;
         }

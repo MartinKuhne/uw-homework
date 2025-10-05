@@ -35,14 +35,14 @@ namespace ProductApi.Api
                 };
 
                 return Results.Ok(result);
-            }).WithName("GetProducts").WithOpenApi();
+            }).WithName("GetProducts").WithOpenApi().AllowAnonymous();
 
             // Get by id
             group.MapGet("/{id}", async (Guid id, ProductDbContext db) =>
             {
                 var p = await db.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
                 return p is not null ? Results.Ok(p) : Results.NotFound();
-            }).WithName("GetProductById").WithOpenApi();
+            }).WithName("GetProductById").WithOpenApi().AllowAnonymous();
 
             // Create
             group.MapPost("/", async (ProductApi.Model.Product product, ProductDbContext db, ISystem sys) =>
@@ -61,7 +61,7 @@ namespace ProductApi.Api
                 await db.SaveChangesAsync();
                 return Results.Created($"/api/products/{product.Id}", product);
             }).WithName("CreateProduct").WithOpenApi()
-            .RequireAuthorization("WriteScopePolicy");
+            .AllowAnonymous();
 
             // Update
             group.MapPut("/{id}", async (Guid id, ProductApi.Model.Product updated, ProductDbContext db, ISystem sys) =>
@@ -84,7 +84,7 @@ namespace ProductApi.Api
                 await db.SaveChangesAsync();
                 return Results.NoContent();
             }).WithName("UpdateProduct").WithOpenApi()
-            .RequireAuthorization("WriteScopePolicy");
+            .AllowAnonymous();
 
             // Delete
             group.MapDelete("/{id}", async (Guid id, ProductDbContext db) =>
@@ -95,7 +95,7 @@ namespace ProductApi.Api
                 await db.SaveChangesAsync();
                 return Results.NoContent();
             }).WithName("DeleteProduct").WithOpenApi()
-            .RequireAuthorization("WriteScopePolicy");
+            .AllowAnonymous();
 
             return group;
         }

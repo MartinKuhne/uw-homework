@@ -52,7 +52,7 @@ namespace ProductApi.Api
                 {
                     return Results.BadRequest(new { error = "Query failed", detail = ex.Message });
                 }
-            }).WithName("Catalog_QueryProducts").WithOpenApi();
+            }).WithName("Catalog_QueryProducts").WithOpenApi().AllowAnonymous();
 
             return group;
         }
