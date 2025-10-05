@@ -1,25 +1,29 @@
 # ECommerce back-end
 
-## Prerequisites
+The premise of this work is to build an e-commerce back-end using C#, SQL and entity framework.
 
-Docker is recommended (required to build the container)
+# Target architecture
 
-`dotnet tool install --global dotnet-ef`
+I imagine this reflects the originally intended architecture
 
-To create a local SQL server instance
-
+```mermaid
+flowchart
+	prod-db@{ shape: "lin-cyl", label: "SQL HA read/write" }
+  	cat-db@{ shape: "lin-cyl", label: "SQL read only" }
+  	cart-db@{ shape: "lin-cyl", label: "Redis" }
+	prod@{ label: "Product REST" }
+   cat@{ label: "Catalog REST" }
+   cart@{ label: "Cart REST" }
+   prod-->prod-db
+   cat-->cat-db
+   cart-->cart-db
+   prod-db-->cat-db
+ 	manage@{ shape: "circle", label: "Admin" }
+	order@{ shape: "circle", label: "Ordering" }
+   order-->cat
+   order-->cart
+   manage-->prod
 ```
-docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=<password>" `
-   -p 1433:1433 --name sql1 --hostname sql1 `
-   -d `
-   mcr.microsoft.com/mssql/server:2025-latest
-```
-
-For the catalog and product projects, each
-
-`dotnet user-secrets set "ConnectionStrings:ProductDb" "Server=.;Database=ProductDb;Trusted_Connection=false;MultipleActiveResultSets=true;User ID=sa;Password=<password>;TrustServerCertificate=true;`
-
-Note for development use only.
 
 # Implementation notes
 
@@ -49,9 +53,18 @@ TBD
 
 Using EF core and the SQL provider into LocalDB for development
 
-# Create a middleware component that logs the request and response details (e.g., headers, status codes, execution time).
+## Create a middleware component that logs the request and response details (e.g., headers, status codes, execution time).
 
 This is accomplished by using the Serilog.AspNetCore library. The RequestHeaderLoggingMiddleware class is used to log headers.
+
+### Examples
+
+```
+[11:57:57 INF] Request GET /api/categories headers: {"Accept": ["*/*"], "Connection": ["close"], "Host": ["localhost:5086"], "User-Agent": ["Thunder Client (https://www.thunderclient.com)"], "Accept-Encoding": ["gzip, deflate, br"], "Content-Type": ["application/json"], "Content-Length": ["21"]}
+
+[11:57:58 INF] Request finished HTTP/1.1 GET http://localhost:5086/api/categories - 200 null application/json; charset=utf-8 591.7661ms
+```
+
 
 ## Use dependency injection to inject a custom service (e.g., ILoggingService) into the middleware. Demonstrate the use of scoped, transient, and singleton lifetimes for services in the application.
 
@@ -77,14 +90,15 @@ Token authentication is implemented using AWS Cognito as the identity provider. 
 
 To obtain a token, use the client credentials (machine to machine) flow. I will provide the client ID and client secret upon request.
 
+Edit: It turns out that AWS Cognito does not support VPC. In other words, the service can't reach the discovery endpoint on the IAM to download the certificates it needs to validate tokens. I opted not to pay for an implement the outbound NAT required to reach the discovery endpoint over the public internet, and disabled authentication for most endpoints.
+
 ##  Integrate a third-party payment gateway (mock implementation is fine)
 
-TBD
+Not provided
 
 ## Containerize the service via Docker
 
-Dockerfile provided for product/catalog. It is built automatically on github via github action. To build locally, go to src\product then say
-`docker build -t uw-ecom-product:latest -f .\Product\Dockerfile`
+Dockerfile provided for product/catalog. It is built automatically on github via github action. To build locally, use the publish.ps1 scripts provided
 
 ##  Deploy the service to AWS cloud
 
@@ -100,6 +114,14 @@ URL available upon request
 
 This is a difficult question to answer since we are making heavy use of a database. As far as the API is concerned, operations concerning a single record are simply O(1) and operations concerning multiple records are simply O(N).
 Assuming database index is present and uses a tree, record retrieval would be considered O(log n). With no index present, it will scan the entire column O(n). More complex searches and ordering can cause multiple table scans or temporany tables to be created.
+
+# Development
+
+## Prerequisites
+
+Docker is recommended (required to build the container). You will also need the EF tooling:
+
+`dotnet tool install --global dotnet-ef`
 
 
 

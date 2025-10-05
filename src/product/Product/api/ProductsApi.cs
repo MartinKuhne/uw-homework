@@ -25,14 +25,8 @@ namespace ProductApi.Api
                     .Take(pageSize)
                     .ToListAsync();
 
-                var result = new
-                {
-                    Items = items,
-                    Page = page,
-                    PageSize = pageSize,
-                    TotalCount = total,
-                    TotalPages = (int)System.Math.Ceiling(total / (double)pageSize)
-                };
+                var totalPages = (int)System.Math.Ceiling(total / (double)pageSize);
+                var result = new PagedResponse<ProductApi.Model.Product>(items, page, pageSize, total, totalPages);
 
                 return Results.Ok(result);
             }).WithName("GetProducts").WithOpenApi().AllowAnonymous();

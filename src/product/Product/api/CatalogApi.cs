@@ -37,14 +37,8 @@ namespace ProductApi.Api
                     var total = await query.CountAsync();
                     var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
-                    var result = new
-                    {
-                        Items = items,
-                        Page = page,
-                        PageSize = pageSize,
-                        TotalCount = total,
-                        TotalPages = (int)System.Math.Ceiling(total / (double)pageSize)
-                    };
+                    var totalPages = (int)System.Math.Ceiling(total / (double)pageSize);
+                    var result = new PagedResponse<ProductApi.Model.Product>(items, page, pageSize, total, totalPages);
 
                     return Results.Ok(result);
                 }

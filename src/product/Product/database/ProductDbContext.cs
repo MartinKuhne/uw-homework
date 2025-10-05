@@ -40,6 +40,11 @@ namespace ProductApi.Database
                 .HasForeignKey("CategoryId")
                 .IsRequired(false);
 
+            // Indexes for common query patterns
+            product.HasIndex(p => p.Name).HasDatabaseName("IX_Products_Name");
+            product.HasIndex(p => p.Price).HasDatabaseName("IX_Products_Price");
+            product.HasIndex(p => p.IsActive).HasDatabaseName("IX_Products_IsActive");
+
             // Category entity configuration
             var category = modelBuilder.Entity<Category>();
             category.HasKey(c => c.Id);

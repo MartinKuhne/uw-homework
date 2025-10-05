@@ -9,8 +9,6 @@ COPY . .
 # Restore and publish
 WORKDIR /src/Cart
 
-RUN ls -l .
-
 RUN dotnet restore
 RUN dotnet publish -c Release -o /app/publish --no-restore
 

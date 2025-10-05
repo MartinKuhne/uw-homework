@@ -62,7 +62,7 @@ public class RequestHeaderLoggingMiddlewareTests
 
         // Assert - ensure Authorization is not present, but other header is
         var messages = string.Join("\n", provider.Messages);
-        Assert.IsTrue(!string.IsNullOrEmpty(messages), "Expected at least one log message");
+    Assert.That(!string.IsNullOrEmpty(messages), Is.True, "Expected at least one log message");
         StringAssert.DoesNotContain("Authorization:", messages);
         StringAssert.Contains("X-Another-Header", messages);
     }
@@ -90,7 +90,7 @@ public class RequestHeaderLoggingMiddlewareTests
 
         // Assert
         var messages = string.Join("\n", provider.Messages);
-        Assert.IsTrue(!string.IsNullOrEmpty(messages), "Expected at least one log message");
+    Assert.That(!string.IsNullOrEmpty(messages), Is.True, "Expected at least one log message");
         StringAssert.Contains("X-Test-Header", messages);
     }
 }

@@ -4,26 +4,13 @@ using ProductApi.Database;
 using ProductApi.Model;
 using ProductApi.Helpers;
 using ProductType = ProductApi.Model.Product;
+using ProductApi.UnitTests.TestHelpers;
 
 namespace ProductApi.UnitTests
 {
     public class ProductDbContextTests
     {
-        private class FakeSystem : ISystem
-        {
-            public FakeSystem(Guid id, DateTimeOffset now)
-            {
-                GuidValue = id;
-                Now = now;
-            }
-
-            private Guid GuidValue { get; }
-            private DateTimeOffset Now { get; }
-
-            public DateTimeOffset UtcNow => Now;
-
-            public Guid NewGuid => GuidValue;
-        }
+        // Use the shared test helper FakeSystem in ProductApi.UnitTests.TestHelpers
 
         private DbContextOptions<ProductDbContext> CreateNewContextOptions()
         {
@@ -55,9 +42,9 @@ namespace ProductApi.UnitTests
             using (var context = new ProductDbContext(options))
             {
                 var dbProduct = await context.Products.FirstOrDefaultAsync(p => p.Id == product.Id);
-                Assert.IsNotNull(dbProduct);
-                Assert.AreEqual("Test Product", dbProduct!.Name);
-                Assert.AreEqual(12.34M, dbProduct.Price);
+                Assert.That(dbProduct, Is.Not.Null);
+                Assert.That(dbProduct!.Name, Is.EqualTo("Test Product"));
+                Assert.That(dbProduct.Price, Is.EqualTo(12.34M));
             }
         }
 
@@ -80,7 +67,7 @@ namespace ProductApi.UnitTests
             using (var context = new ProductDbContext(options))
             {
                 var p = await context.Products.FindAsync(product.Id);
-                Assert.IsNotNull(p);
+                Assert.That(p, Is.Not.Null);
                 p!.Name = "Updated";
                 p.Price = 2.00M;
                 await context.SaveChangesAsync();
@@ -89,9 +76,9 @@ namespace ProductApi.UnitTests
             using (var context = new ProductDbContext(options))
             {
                 var p = await context.Products.FindAsync(product.Id);
-                Assert.IsNotNull(p);
-                Assert.AreEqual("Updated", p!.Name);
-                Assert.AreEqual(2.00M, p.Price);
+                Assert.That(p, Is.Not.Null);
+                Assert.That(p!.Name, Is.EqualTo("Updated"));
+                Assert.That(p.Price, Is.EqualTo(2.00M));
             }
         }
 
@@ -114,7 +101,7 @@ namespace ProductApi.UnitTests
             using (var context = new ProductDbContext(options))
             {
                 var p = await context.Products.FindAsync(product.Id);
-                Assert.IsNotNull(p);
+                Assert.That(p, Is.Not.Null);
                 context.Products.Remove(p!);
                 await context.SaveChangesAsync();
             }
@@ -122,7 +109,7 @@ namespace ProductApi.UnitTests
             using (var context = new ProductDbContext(options))
             {
                 var p = await context.Products.FindAsync(product.Id);
-                Assert.IsNull(p);
+                Assert.That(p, Is.Null);
             }
         }
     }

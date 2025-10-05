@@ -21,8 +21,8 @@ namespace ProductApi.UnitTests
         private class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
         {
             public const string SchemeName = "Test";
-            public TestAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, System.Text.Encodings.Web.UrlEncoder encoder, ISystemClock clock)
-                : base(options, logger, encoder, clock)
+            public TestAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, System.Text.Encodings.Web.UrlEncoder encoder)
+                : base(options, logger, encoder)
             {
             }
 
@@ -96,7 +96,7 @@ namespace ProductApi.UnitTests
             var content = new StringContent(JsonSerializer.Serialize(category), Encoding.UTF8, "application/json");
 
             var resp = await client.PostAsync("/api/categories/", content);
-            Assert.AreEqual(HttpStatusCode.Unauthorized, resp.StatusCode);
+            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
         }
 
         [Test]
@@ -113,7 +113,7 @@ namespace ProductApi.UnitTests
             client.DefaultRequestHeaders.Add("X-Test-Claims", JsonSerializer.Serialize(claims));
 
             var resp = await client.PostAsync("/api/categories/", content);
-            Assert.AreEqual(HttpStatusCode.Forbidden, resp.StatusCode);
+            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
         }
 
         [Test]
@@ -130,7 +130,7 @@ namespace ProductApi.UnitTests
             client.DefaultRequestHeaders.Add("X-Test-Claims", JsonSerializer.Serialize(claims));
 
             var resp = await client.PostAsync("/api/categories/", content);
-            Assert.AreEqual(HttpStatusCode.Created, resp.StatusCode);
+            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Created));
         }
 
         [Test]
@@ -147,7 +147,7 @@ namespace ProductApi.UnitTests
             client.DefaultRequestHeaders.Add("X-Test-Claims", JsonSerializer.Serialize(claims));
 
             var resp = await client.PostAsync("/api/categories/", content);
-            Assert.AreEqual(HttpStatusCode.Forbidden, resp.StatusCode);
+            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
         }
 
         [Test]
@@ -164,7 +164,7 @@ namespace ProductApi.UnitTests
             client.DefaultRequestHeaders.Add("X-Test-Claims", JsonSerializer.Serialize(claims));
 
             var resp = await client.PostAsync("/api/categories/", content);
-            Assert.AreEqual(HttpStatusCode.Forbidden, resp.StatusCode);
+            Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
         }
     }
 }

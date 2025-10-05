@@ -40,7 +40,7 @@ namespace CartApi.UnitTests
             var res = await client.GetAsync("/api/cart/");
             Assert.That(res.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             var items = await res.Content.ReadFromJsonAsync<List<CartItem>>();
-            Assert.IsNotNull(items);
+            Assert.That(items, Is.Not.Null);
             Assert.That(items!.Count, Is.EqualTo(0));
         }
 
@@ -52,14 +52,14 @@ namespace CartApi.UnitTests
             var postRes = await client.PostAsJsonAsync("/api/cart/items", newItem);
             Assert.That(postRes.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             var items = await postRes.Content.ReadFromJsonAsync<List<CartItem>>();
-            Assert.IsNotNull(items);
+            Assert.That(items, Is.Not.Null);
             Assert.That(items!.Count, Is.EqualTo(1));
             Assert.That(items[0].ProductId, Is.EqualTo(newItem.ProductId));
 
             // subsequent get should return same item (cookie maintained by handler)
             var getRes = await client.GetAsync("/api/cart/");
             var got = await getRes.Content.ReadFromJsonAsync<List<CartItem>>();
-            Assert.IsNotNull(got);
+            Assert.That(got, Is.Not.Null);
             Assert.That(got!.Count, Is.EqualTo(1));
             Assert.That(got[0].ProductId, Is.EqualTo(newItem.ProductId));
         }
@@ -96,7 +96,7 @@ namespace CartApi.UnitTests
             Assert.That(r2.IsSuccessStatusCode, Is.True);
 
             var items = await r2.Content.ReadFromJsonAsync<List<CartItem>>();
-            Assert.IsNotNull(items);
+            Assert.That(items, Is.Not.Null);
             Assert.That(items!.Count, Is.EqualTo(1));
             Assert.That(items[0].Quantity, Is.EqualTo(7));
         }
@@ -116,7 +116,7 @@ namespace CartApi.UnitTests
 
             var getRes = await client.GetAsync("/api/cart/");
             var got = await getRes.Content.ReadFromJsonAsync<List<CartItem>>();
-            Assert.IsNotNull(got);
+            Assert.That(got, Is.Not.Null);
             Assert.That(got!.Count, Is.EqualTo(0));
         }
     }
