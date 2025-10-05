@@ -14,6 +14,7 @@ jobs:
     env:
       ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
       ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+      ECR_ID: ${{ secrets.ECR_ID }}
 
     steps:
       - name: Checkout
@@ -34,6 +35,7 @@ jobs:
           tags: |
             ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
             ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.ECR_ID }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
