@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 public class RequestHeaderLoggingMiddleware
 {
@@ -16,11 +17,13 @@ public class RequestHeaderLoggingMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        var headers = context.Request.Headers
-            .Where(h => h.Key != "Authorization") // Optional: exclude sensitive headers
-            .Select(h => $"{h.Key}: {string.Join(", ", h.Value.Count > 0 ? h.Value.ToArray() : System.Array.Empty<string>())}");
+        // Build a structured dictionary of headers (excluding sensitive ones)
+        var headersDict = context.Request.Headers
+            .Where(h => !string.Equals(h.Key, "Authorization", StringComparison.OrdinalIgnoreCase))
+            .ToDictionary(h => h.Key, h => h.Value.Count > 0 ? h.Value.ToArray() : Array.Empty<string>());
 
-        _logger.LogInformation("Request Headers:\n{Headers}", string.Join("\n", headers ?? Enumerable.Empty<string>()));
+        // Structured log: use destructuring to preserve the header dictionary shape
+        _logger.LogInformation("Request {Method} {Path} headers: {@Headers}", context.Request.Method, context.Request.Path, headersDict);
 
         await _next(context);
     }

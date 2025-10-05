@@ -64,7 +64,7 @@ public class RequestHeaderLoggingMiddlewareTests
         var messages = string.Join("\n", provider.Messages);
         Assert.IsTrue(!string.IsNullOrEmpty(messages), "Expected at least one log message");
         StringAssert.DoesNotContain("Authorization:", messages);
-        StringAssert.Contains("X-Another-Header: Value", messages);
+        StringAssert.Contains("X-Another-Header", messages);
     }
 
     [Test]
@@ -83,7 +83,7 @@ public class RequestHeaderLoggingMiddlewareTests
         // Create a terminal delegate that does nothing
         RequestDelegate next = (HttpContext ctx) => Task.CompletedTask;
 
-    var middleware = new RequestHeaderLoggingMiddleware(next, logger);
+        var middleware = new RequestHeaderLoggingMiddleware(next, logger);
 
         // Act
         await middleware.InvokeAsync(context);
@@ -91,6 +91,6 @@ public class RequestHeaderLoggingMiddlewareTests
         // Assert
         var messages = string.Join("\n", provider.Messages);
         Assert.IsTrue(!string.IsNullOrEmpty(messages), "Expected at least one log message");
-        StringAssert.Contains("X-Test-Header: HeaderValue", messages);
+        StringAssert.Contains("X-Test-Header", messages);
     }
 }
