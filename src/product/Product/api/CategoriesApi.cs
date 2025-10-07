@@ -15,9 +15,9 @@ namespace ProductApi.Api
                 .WithName("GetCategories").WithOpenApi().AllowAnonymous();
 
             // List categories (auth test)
-            group.MapGet("/auth/", async (ProductDbContext db) =>
-                await db.Categories.AsNoTracking().ToListAsync())
-                .WithName("GetCategoriesAuthTest").WithOpenApi().RequireAuthorization("WriteScopePolicy");
+            //group.MapGet("/auth/", async (ProductDbContext db) =>
+            //    await db.Categories.AsNoTracking().ToListAsync())
+            //    .WithName("GetCategoriesAuthTest").WithOpenApi().RequireAuthorization("WriteScopePolicy");
 
             // Get by id
             group.MapGet("/{id}", async (Guid id, ProductDbContext db) =>
