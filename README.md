@@ -4,7 +4,7 @@ The premise of this work is to build an e-commerce back-end using C#, SQL and en
 
 # Target architecture
 
-I imagine this reflects the originally intended architecture
+Given the requirement to use SQL server, this should be a reasonably scalable approach:
 
 ```mermaid
 flowchart
@@ -47,7 +47,7 @@ Please see the subfolders in the respective projects.
 
 ## Implement caching for frequently accessed data (e.g., product catalog) using in-memory caching.
 
-TBD
+In the catalog API
 
 ## Use SQL database, Entity Framework Core to interact with databases
 

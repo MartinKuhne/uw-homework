@@ -35,6 +35,8 @@ ProductApi.Configuration.JwtConfigurator.ConfigureJwt(builder, jwtOptions);
 
 // Register system helper for getting time and guids
 builder.Services.AddSingleton<ProductApi.Helpers.ISystem, ProductApi.Helpers.SystemImpl>();
+// Register distributed cache
+ProductApi.Configuration.DistributedCacheConfigurator.ConfigureDistributedCache(builder);
 
 // Register EF Core ProductDbContext using SQLite. Connection string comes from configuration
 // (ConnectionStrings:ProductDb). If not present, the default in appsettings.json will be used.
@@ -95,35 +97,14 @@ if (featureFlags.EnableCatalogApi)
 // Simple health check that returns plain text
 app.MapGet("/health", () => Results.Text("healthy")).WithName("Health").AllowAnonymous();
 
+var logger = app.Services.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Program>>();
 try
 {
-    var logger = app.Services.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Program>>();
-    // Log environment variables on startup as structured data (be careful not to log secrets in production)
-    try
-    {
-        var envVars = Environment.GetEnvironmentVariables();
-        var envDict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (DictionaryEntry de in envVars)
-        {
-            var key = de.Key?.ToString() ?? string.Empty;
-            var value = de.Value?.ToString() ?? string.Empty;
-            envDict[key] = value;
-        }
-
-        // Structured log - `@Env` will preserve the dictionary structure for Serilog sinks
-        logger.LogInformation("Environment variables: {@Env}", envDict);
-    }
-    catch (Exception ex)
-    {
-        logger.LogWarning(ex, "Failed to enumerate environment variables");
-    }
-
     logger.LogInformation("Starting Product API");
     app.Run();
 }
 catch (Exception ex)
 {
-    var logger = app.Services.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Program>>();
     logger.LogCritical(ex, "Host terminated unexpectedly");
     throw;
 }
