@@ -122,5 +122,3 @@ Assuming database index is present and uses a tree, record retrieval would be co
 Docker is recommended (required to build the container). You will also need the EF tooling:
 
 `dotnet tool install --global dotnet-ef`
-
-

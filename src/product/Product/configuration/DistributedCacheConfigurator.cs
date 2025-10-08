@@ -12,12 +12,7 @@ namespace ProductApi.Configuration
     {
         public static void ConfigureDistributedCache(WebApplicationBuilder builder)
         {
-            // Configuration keys checked (in order): Redis:ConnectionString, REDIS__CONNECTIONSTRING (via env vars)
             var redisConn = builder.Configuration.GetSection("Redis").GetValue<string>("ConnectionString");
-            if (string.IsNullOrWhiteSpace(redisConn))
-            {
-                redisConn = builder.Configuration.GetValue<string>("REDIS__CONNECTIONSTRING");
-            }
 
             if (!string.IsNullOrWhiteSpace(redisConn))
             {
