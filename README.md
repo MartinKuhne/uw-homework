@@ -1,6 +1,6 @@
 # ECommerce back-end
 
-The premise of this work is to build an e-commerce back-end using C#, SQL and entity framework.
+The premise of this work is to build an e-commerce back-end using C#, SQL and Entity Framework. It was initially a coding exercise.
 
 # Target architecture
 
@@ -122,6 +122,5 @@ Assuming database index is present and uses a tree, record retrieval would be co
 Docker is recommended (required to build the container). You will also need the EF tooling:
 
 `dotnet tool install --global dotnet-ef`
-
 
 
