@@ -1,124 +1,44 @@
-# ECommerce back-end
+# Martin Kuhne — Portfolio
 
-The premise of this work is to build an e-commerce back-end using C#, SQL and Entity Framework. It was initially a coding exercise.
+This used to be a repo where I provided answers to some common code interview questions. Now it's 2026 and the rules have changed - we are no longer reversing linked lists (hopefully) - the code examples are still there,
+but let me nudge you in a different direction: Spec-driven development. In the age of AI coding agents, we are going to set the rules, establish the boundaries, and provide guidance to automated coding agents. Some examples:
 
-# Target architecture
+- [Agents.md](https://github.com/MartinKuhne/personal-productivity-ai/blob/main/AGENTS.md): Establishing a constitution with specific rules to follow, such as refactoring before implementing or test-driven development
+- [Create PR skill](https://github.com/MartinKuhne/personal-productivity-ai/blob/main/.opencode/skills/create-pr/SKILL.md): Codify expectations for the different steps in the development process
+- [AI-first development](https://github.com/MartinKuhne/ai-foundation/blob/main/prompts/create-sdk-doc.md): Creating and maintaining resources that reliably lead to the expected outcomes
+- [Spec-driven development](https://github.com/MartinKuhne/personal-productivity-ai/blob/main/src/desktop/SPEC.md): Requirements stay with the code, and stay in sync with the code
+- [Architecture as code](https://github.com/MartinKuhne/personal-productivity-ai/blob/main/doc/technical-context/ARCHITECTURE_C4.md): Architecture is human- and machine-readable, and becomes part of the code
 
-Given the requirement to use SQL server, this should be a reasonably scalable approach:
+## Passions
 
-```mermaid
-flowchart
-	prod-db@{ shape: "lin-cyl", label: "SQL HA read/write" }
-  	cat-db@{ shape: "lin-cyl", label: "SQL read only" }
-  	cart-db@{ shape: "lin-cyl", label: "Redis" }
-	prod@{ label: "Product REST" }
-   cat@{ label: "Catalog REST" }
-   cart@{ label: "Cart REST" }
-   prod-->prod-db
-   cat-->cat-db
-   cart-->cart-db
-   prod-db-->cat-db
- 	manage@{ shape: "circle", label: "Admin" }
-	order@{ shape: "circle", label: "Ordering" }
-   order-->cat
-   order-->cart
-   manage-->prod
-```
+- **AI-Native Engineering**: Deep commitment to building AI-first development workflows — prompt engineering, agentic coding, and designing architectures that leverage AI at every layer. Created architecture repositories enabling AI to understand bounded contexts and dependencies across 30+ repositories.
+- **Cloud-Native Architecture**: Passionate about modern, scalable systems — microservices, event-driven architectures, and infrastructure as code across AWS and Azure.
+- **Engineering Leadership**: Dedicated to coaching teams through large-scale refactors, establishing CI/CD/TDD practices, and improving delivery predictability in regulated environments (HIPAA/HITRUST).
 
-# Implementation notes
+## Portfolio Projects
 
-## APIs that allow search, filter, and show results for products in product catalog  
+### [Personal Productivity AI](https://github.com/MartinKuhne/personal-productivity-ai)
+- **~60k~ lines of Rust**
+- An AI-powered personal productivity tool built in Rust, demonstrating deep expertise in systems programming and performance-critical application development. The substantial Rust codebase showcases proficiency in memory-safe, concurrent programming and the Rust ecosystem.
 
-There are three services provided: product, catalog and cart. Product and catalog are operating on the same data, but have different loads and use cases (catalog is search heavy and read only). For this iteration, product and catalog are built out of the same codebase. The product and catalog features can be turned on or off by using feature flags in the configuration, enabling different deployments from the same code.
+*Note* I wrote 0 lines of code for this project. Intentionally. I did teach myself rust patterns and practices to better understand the ecosystem. I _do_ direct the application architecture.
 
-The search functionality lives in catalog, using Dynamic Linq.
+### [DevStack](https://github.com/MartinKuhne/devstack)
+- **23k lines of C#** | **some React/TypeScript**
+- A comprehensive AI coding platform featuring GraphQL APIs, MCP integration, and agent task management. The large TypeScript frontend demonstrates expertise in modern web development, while the C# backend showcases deep .NET knowledge with EF Core, authentication, and complex business logic. Includes an MCP server and use of the OpenCode API for a custom coding agent.
 
-## Admin APIs for managing products
+This project was by and large created with local LLMs with very limited reasoning and context. My [early learnings](https://github.com/MartinKuhne/devstack/blob/main/doc/HISTORY.md) can be found with the project. I later privoted the project to focusing on the MCP server to enable a plan/approve/implement/approve development cycle.
 
-In the product folder
+## Professional Qualifications
 
-## APIs to support shopping cart functionality with session-based storage
+| Area | Experience |
+|------|-----------|
+| **Leadership** | Principal Engineer at Factory Mutual; Software Architect at BestBuy Health, CH Beck; Senior positions at VMware, Intel, Microsoft |
+| **AI/Agentic Development** | Prompt engineering, agentic coding, AI-assisted development with Claude Code & GitHub Copilot |
+| **Languages** | C#/.NET Core, TypeScript/React/Angular, Rust |
+| **Architecture** | Microservices, event-driven systems, distributed systems, API design (REST, GraphQL), OAuth |
+| **Cloud & DevOps** | AWS, Azure, Docker, Kubernetes, ArgoCD, CI/CD, Infrastructure as Code |
+| **Data & Messaging** | SQL Server, PostgreSQL, MongoDB, Redis, Hasura, RabbitMQ, Kafka |
+| **Compliance** | HIPAA/HITRUST security and compliance |
+| **Mentoring** | Coaching teams through large-scale refactors, establishing TDD/DevOps practices, performance evaluation improvement |
 
-In the catalog folder
-
-## Use a layered architecture (e.g., Controller, Service, Repository).
-
-Please see the subfolders in the respective projects.
-
-## Implement caching for frequently accessed data (e.g., product catalog) using in-memory caching.
-
-In the catalog API
-
-## Use SQL database, Entity Framework Core to interact with databases
-
-Using EF core and the SQL provider into LocalDB for development
-
-## Create a middleware component that logs the request and response details (e.g., headers, status codes, execution time).
-
-This is accomplished by using the Serilog.AspNetCore library. The RequestHeaderLoggingMiddleware class is used to log headers.
-
-### Examples
-
-```
-[11:57:57 INF] Request GET /api/categories headers: {"Accept": ["*/*"], "Connection": ["close"], "Host": ["localhost:5086"], "User-Agent": ["Thunder Client (https://www.thunderclient.com)"], "Accept-Encoding": ["gzip, deflate, br"], "Content-Type": ["application/json"], "Content-Length": ["21"]}
-
-[11:57:58 INF] Request finished HTTP/1.1 GET http://localhost:5086/api/categories - 200 null application/json; charset=utf-8 591.7661ms
-```
-
-
-## Use dependency injection to inject a custom service (e.g., ILoggingService) into the middleware. Demonstrate the use of scoped, transient, and singleton lifetimes for services in the application.
-
-Using dependency injection to inject the ISystem abstraction. Note DbContext lifetime is scoped, this is not directly evident from the code since Entity Framework has it's own configuration builder.
-
-## Add unit tests, mock data, for the middleware and service
-
-Unit tests projects are present
-
-## Implement pagination for endpoints as applicable
-
-Implemented pagination for the GetAll and Query endpoints
-
-## Include proper error handling, logging, and input validation
-
-Absent a more detailed specification, some reasonable validation is implemented. Category names are enforced to be unique, product names are not. Logging is accomplished with Serilog. If a product name exceeds the database limit for the column, status 500 will be returned. Better/friendlier validation is needed.
-
-# Bonus
-
-## Add JWT-based authentication and authorization
-
-Token authentication is implemented using AWS Cognito as the identity provider. It uses a simple security model with read and write access group (uw-ecom-api/read and uw-ecom-api/write). Access checks for write are implemented, the other endpoints currently just require a valid token.
-
-To obtain a token, use the client credentials (machine to machine) flow. I will provide the client ID and client secret upon request.
-
-Edit: It turns out that AWS Cognito does not support VPC. In other words, the service can't reach the discovery endpoint on the IAM to download the certificates it needs to validate tokens. I opted not to pay for an implement the outbound NAT required to reach the discovery endpoint over the public internet, and disabled authentication for most endpoints.
-
-##  Integrate a third-party payment gateway (mock implementation is fine)
-
-Not provided
-
-## Containerize the service via Docker
-
-Dockerfile provided for product/catalog. It is built automatically on github via github action. To build locally, use the publish.ps1 scripts provided
-
-##  Deploy the service to AWS cloud
-
-Deployed to AWS by using
-* Cognito
-* App Runner
-* Elastic Container Registry
-* RDS
-
-URL available upon request
-
-## Include time complexity and space complexity for each of the APIs as comments in the code
-
-This is a difficult question to answer since we are making heavy use of a database. As far as the API is concerned, operations concerning a single record are simply O(1) and operations concerning multiple records are simply O(N).
-Assuming database index is present and uses a tree, record retrieval would be considered O(log n). With no index present, it will scan the entire column O(n). More complex searches and ordering can cause multiple table scans or temporany tables to be created.
-
-# Development
-
-## Prerequisites
-
-Docker is recommended (required to build the container). You will also need the EF tooling:
-
-`dotnet tool install --global dotnet-ef`
