@@ -18,7 +18,7 @@ but let me nudge you in a different direction: Spec-driven development. In the a
 ## Portfolio Projects
 
 ### [Personal Productivity AI](https://github.com/MartinKuhne/personal-productivity-ai)
-- **~60k~ lines of Rust**
+- **~60k lines of Rust**
 - An AI-powered personal productivity tool built in Rust, demonstrating deep expertise in systems programming and performance-critical application development. The substantial Rust codebase showcases proficiency in memory-safe, concurrent programming and the Rust ecosystem.
 
 *Note* I wrote 0 lines of code for this project. Intentionally. I did teach myself rust patterns and practices to better understand the ecosystem. I _do_ direct the application architecture.
